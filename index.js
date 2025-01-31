@@ -70,7 +70,7 @@ app.post("/upload", upload.single('file'), async (req, res) => {
       success: true,
       message: "File uploaded successfully",
       data: {
-        fileUri: data.file.fileUri,
+        fileUri: data.file.uri,
         mimeType: data.file.mimeType,
       },
     });
