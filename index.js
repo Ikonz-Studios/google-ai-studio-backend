@@ -6,6 +6,8 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
+const fs = require('fs');
+const path = require('path');
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -90,6 +92,58 @@ app.delete("/delete", async (req, res) => {
     success: true,
     message: `${fileName} file deleted successfully`,
   });
+});
+
+app.get("/cache/files", async (req, res) => {
+  try {
+    const directory = 'uploads';
+    const files = fs.readdirSync(directory);
+    
+    const fileDetails = files.map(file => {
+      const filePath = path.join(directory, file);
+      const stats = fs.statSync(filePath);
+      return {
+        name: file,
+        size: stats.size,
+        created: stats.birthtime,
+        modified: stats.mtime
+      };
+    });
+    
+    res.json({
+      success: true,
+      message: "Files listed successfully",
+      files: fileDetails
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to list files",
+      error: error.message
+    });
+  }
+});
+
+app.get("/cache/cleanup", async (req, res) => {
+  try {
+    const directory = 'uploads';
+    const files = fs.readdirSync(directory);
+    
+    for (const file of files) {
+      fs.unlinkSync(path.join(directory, file));
+    }
+    
+    res.json({
+      success: true,
+      message: "All files deleted from uploads folder successfully"
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Cleanup failed",
+      error: error.message
+    });
+  }
 });
 
 app.listen(8000, () => {
